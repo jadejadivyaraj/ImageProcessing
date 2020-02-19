@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using ImageProcessing.Web.Utilities;
+﻿using ImageProcessing.Web.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace ImageProcessing.Web
 {
@@ -66,10 +65,9 @@ namespace ImageProcessing.Web
                 // server-side, use Path.GetRandomFileName to generate a safe
                 // random file name.
                 //var trustedFileNameForFileStorage = Path.GetRandomFileName();
-                var trustedFileNameForFileStorage = $"{Guid.NewGuid()}_{formFile.FileName}";
-                var filePath = Path.Combine(
-                    _targetFilePath, trustedFileNameForFileStorage);
-
+                var trustedFileNameForFileStorage = $"{Guid.NewGuid()}_{Path.GetFileName(formFile.FileName)}";
+                var folderPath = Path.Combine(_targetFilePath,FileUpload.Stadium,FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm"));
+                var filePath = Path.Combine(folderPath, trustedFileNameForFileStorage);
                 // **WARNING!**
                 // In the following example, the file is saved without
                 // scanning the file's contents. In most production
@@ -78,6 +76,11 @@ namespace ImageProcessing.Web
                 // for download or for use by other systems. 
                 // For more information, see the topic that accompanies 
                 // this sample.
+
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
 
                 using (var fileStream = System.IO.File.Create(filePath))
                 {
@@ -89,7 +92,9 @@ namespace ImageProcessing.Web
                 }
             }
 
-            return RedirectToPage("./Index");
+            Result = "Uploaded Successfully";
+            //return RedirectToPage();
+            return RedirectToPage("./Search");
         }
 
     }
@@ -97,11 +102,16 @@ namespace ImageProcessing.Web
     public class BufferedMultipleFileUploadPhysical
     {
         [Required]
-        [Display(Name = "File")]
+        [Display(Name = "Images")]
         public List<IFormFile> FormFiles { get; set; }
 
-        [Display(Name = "Note")]
-        [StringLength(50, MinimumLength = 0)]
-        public string Note { get; set; }
+        [Required]
+        [Display(Name = "Stadium")]
+        [StringLength(100, MinimumLength = 0)]
+        public string Stadium { get; set; }
+
+        [Display(Name = "Date")]
+        [DataType(DataType.Date)]
+        public DateTime DateTime { get; set; }
     }
 }

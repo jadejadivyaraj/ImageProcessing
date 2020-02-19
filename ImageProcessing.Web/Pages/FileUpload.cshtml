@@ -1,11 +1,13 @@
 ﻿@page
 @model ImageProcessing.Web.FileUploadModel
 @{
-    ViewData["Title"] = "FileUpload";
+    ViewData["Title"] = "Upload Images";
 }
 
-<h1>FileUpload</h1>
-
+<h1>Upload Images</h1>
+<div class="alert-warning">
+    @Model.Result
+</div>
 <form enctype="multipart/form-data" method="post">
     <dl>
         <dt>
@@ -16,7 +18,24 @@
             <span asp-validation-for="FileUpload.FormFiles"></span>
         </dd>
     </dl>
-    <input asp-page-handler="Upload" class="btn" type="submit" value="Upload" />
+    <dl>
+        <dt>
+            <label asp-for="FileUpload.Stadium"></label>
+        </dt>
+        <dd>
+            <input asp-for="FileUpload.Stadium" />
+            <span asp-validation-for="FileUpload.Stadium"></span>
+        </dd>
+    </dl>
+    <dl>
+        <dt>
+            <label asp-for="FileUpload.DateTime"></label>
+        </dt>
+        <dd>
+            <input asp-for="FileUpload.DateTime" />
+            <span asp-validation-for="FileUpload.DateTime"></span>
+        </dd>
+    </dl>
+    <input asp-page-handler="Upload" class="btn btn-primary" type="submit" value="Upload" />
+
 </form>
-
-
