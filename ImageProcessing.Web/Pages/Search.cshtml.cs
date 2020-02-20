@@ -17,6 +17,7 @@ namespace ImageProcessing.Web
         private readonly long _fileSizeLimit;
         private readonly string[] _permittedExtensions;
         private readonly string _targetFilePath;
+        private readonly IConfiguration _config;
 
         public SearchModel(IConfiguration config)
         {
@@ -25,6 +26,7 @@ namespace ImageProcessing.Web
             _targetFilePath = config.GetValue<string>("StoredFilesPath");
 
             _permittedExtensions = config.GetValue<string>("PermittedExtensions")?.Split(',');
+            _config = config;
         }
 
         [BindProperty]
@@ -89,7 +91,7 @@ namespace ImageProcessing.Web
                 //await formFile.CopyToAsync(fileStream);
             }
 
-            ProcessHelper.SearchFile(filePath);
+            ProcessHelper.SearchFile(_config, filePath);
             return RedirectToPage();
         }
     }
