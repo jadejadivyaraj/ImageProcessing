@@ -91,7 +91,9 @@ namespace ImageProcessing.Web
                 //await formFile.CopyToAsync(fileStream);
             }
 
-            ProcessHelper.SearchFile(_config, filePath);
+            ProcessHelper.SearchFile(_config,
+                Path.Combine(Path.GetDirectoryName(folderPath), FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm")),
+                filePath);
             return RedirectToPage();
         }
     }
@@ -105,5 +107,9 @@ namespace ImageProcessing.Web
         [Display(Name = "Stadium")]
         [StringLength(100, MinimumLength = 0)]
         public string Stadium { get; set; }
+
+        [Display(Name = "Date")]
+        [DataType(DataType.Date)]
+        public DateTime DateTime { get; set; }
     }
 }

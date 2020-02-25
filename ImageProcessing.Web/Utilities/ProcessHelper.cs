@@ -10,11 +10,16 @@ namespace ImageProcessing.Web.Utilities
 {
     public class ProcessHelper
     {
-        public static void SearchFile(IConfiguration config, string imagePath)
+        public static void SearchFile(IConfiguration config, string folderPath, string imagePath)
         {
             var start = new ProcessStartInfo();
             start.FileName = config.GetValue<string>("PythonExePath");
-            start.Arguments = string.Format("{0} {1}", config.GetValue<string>("PythonScriptPath"), imagePath);
+            start.Arguments = string.Format("{0} {1} {2} {3} {4}"
+                , config.GetValue<string>("PythonScriptPath")
+                , folderPath
+                , imagePath
+                , "PersonName"
+                , 3);
             start.UseShellExecute = false;
             start.WorkingDirectory = config.GetValue<string>("WorkingDir");
             start.RedirectStandardOutput = true;
