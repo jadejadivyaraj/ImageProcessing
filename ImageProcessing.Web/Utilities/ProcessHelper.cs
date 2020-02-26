@@ -10,16 +10,16 @@ namespace ImageProcessing.Web.Utilities
 {
     public class ProcessHelper
     {
-        public static void SearchFile(IConfiguration config, string folderPath, string imagePath)
+        public static void SearchFile(IConfiguration config, string photographerFolderPath, string personSearchfolder, string personName)
         {
             var start = new ProcessStartInfo();
             start.FileName = config.GetValue<string>("PythonExePath");
             start.Arguments = string.Format("{0} {1} {2} {3} {4}"
                 , config.GetValue<string>("PythonScriptPath")
-                , folderPath
-                , imagePath
-                , "PersonName"
-                , 3);
+                , personSearchfolder
+                , photographerFolderPath
+                , personName
+                , 10);
             start.UseShellExecute = false;
             start.WorkingDirectory = config.GetValue<string>("WorkingDir");
             start.RedirectStandardOutput = true;
@@ -30,6 +30,24 @@ namespace ImageProcessing.Web.Utilities
                     string result = reader.ReadToEnd();
                     Console.Write(result);
                 }
+            }
+        }
+
+        public static void WaitUntillAlgoComplete(IConfiguration config)
+        {
+            var progressFile = Path.Combine(config.GetValue<string>("WorkingDir"), "Progress.txt");
+
+            var retry = 100;
+            while (retry>0)
+            {
+                retry--;
+                var status= File.ReadAllText(progressFile);
+                if (status == "0100")
+                {
+                    break;
+                }
+
+                Task.Delay(5000);
             }
         }
     }

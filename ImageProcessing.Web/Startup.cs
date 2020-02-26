@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.FileProviders.Physical;
 using Microsoft.Extensions.Hosting;
 
 namespace ImageProcessing.Web
@@ -42,6 +44,13 @@ namespace ImageProcessing.Web
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(Configuration.GetValue<string>("StoredFilesPath"),
+                    ExclusionFilters.Sensitive),
+                RequestPath = "/images"
+
+            });
 
             app.UseRouting();
 

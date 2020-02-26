@@ -18,13 +18,13 @@
             <span asp-validation-for="FileUpload.Stadium"></span>
         </dd>
         
-            <dt>
-                <label asp-for="FileUpload.DateTime"></label>
-            </dt>
-            <dd>
-                <input asp-for="FileUpload.DateTime" />
-                <span asp-validation-for="FileUpload.DateTime"></span>
-            </dd>
+        <dt>
+            <label asp-for="FileUpload.DateTime"></label>
+        </dt>
+        <dd>
+            <input asp-for="FileUpload.DateTime" />
+            <span asp-validation-for="FileUpload.DateTime"></span>
+        </dd>
       
         <dt>
             <label asp-for="FileUpload.FormFile"></label>
@@ -36,4 +36,8 @@
     </dl>
     <input asp-page-handler="Upload" class="btn btn-primary" type="submit" value="Upload" />
 </form>
+
+<div class="col-sm-8">
+    @await Component.InvokeAsync("SearchResult",new {folder=Model.ResultPath})
+</div>
 

@@ -34,6 +34,8 @@ namespace ImageProcessing.Web
 
         public string Result { get; private set; }
 
+        public string ResultPath { get; set; }
+
         public void OnGet()
         {
         }
@@ -65,7 +67,8 @@ namespace ImageProcessing.Web
             }
 
             var trustedFileNameForFileStorage = $"{Guid.NewGuid()}_{Path.GetFileName(FileUpload.FormFile.FileName)}";
-            var folderPath = Path.Combine(_targetFilePath, FileUpload.Stadium, "Search");
+            var personName = "PersonName";
+            var folderPath = Path.Combine(_targetFilePath, FileUpload.Stadium, personName);
             var filePath = Path.Combine(folderPath, trustedFileNameForFileStorage);
 
             // **WARNING!**
@@ -93,8 +96,19 @@ namespace ImageProcessing.Web
 
             ProcessHelper.SearchFile(_config,
                 Path.Combine(Path.GetDirectoryName(folderPath), FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm")),
-                filePath);
-            return RedirectToPage();
+                Path.GetDirectoryName(filePath)
+                ,personName);
+
+            //wait till algo runs
+            ProcessHelper.WaitUntillAlgoComplete(_config);
+
+            ResultPath = Path.Combine(Path.GetDirectoryName(filePath), personName);
+            return await OnPostUploadedAsync();
+        }
+
+        public async Task<IActionResult> OnPostUploadedAsync()
+        {
+            return Page();
         }
     }
     public class BufferedSingleFileUploadDb

@@ -1,0 +1,21 @@
+﻿@model ImageProcessing.Web.Models.SearchResult
+<h3> Results: </h3>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">FileName</th>
+            <th scope="col">ThumbNail</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var name in @Model.Images)
+    {
+        <tr>
+            <th scope="row"> <a href="@($"{name.Path}")">@name.Name</a></th>
+            <td><img alt="@name.Name" src="@($"{name.Path}")" class="img-thumbnail"></td>
+        </tr>
+    }
+    </tbody>
+</table>
+
