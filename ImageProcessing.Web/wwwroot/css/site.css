@@ -69,3 +69,12 @@ body {
   white-space: nowrap;
   line-height: 60px; /* Vertically center the text there */
 }
+.error {
+    background-color: #d9534f;
+    font-weight: 300;
+    font-size: 16px;
+    padding: 3px 6px 3px 6px;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+}

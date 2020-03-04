@@ -1,4 +1,5 @@
-﻿using ImageProcessing.Web.Utilities;
+﻿using ImageProcessing.Web.Models;
+using ImageProcessing.Web.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -7,16 +8,19 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace ImageProcessing.Web
 {
+    [DisableRequestSizeLimit]
     public class FileUploadModel : PageModel
     {
 
         private readonly long _fileSizeLimit;
         private readonly string[] _permittedExtensions;
         private readonly string _targetFilePath;
+        private readonly string _uploadFileURL;
 
         public FileUploadModel(IConfiguration config)
         {
@@ -25,6 +29,8 @@ namespace ImageProcessing.Web
             _targetFilePath = config.GetValue<string>("StoredFilesPath");
 
             _permittedExtensions = config.GetValue<string>("PermittedExtensions")?.Split(',');
+
+            _uploadFileURL = config.GetValue<string>("ApiPath");
         }
 
         [BindProperty]
@@ -39,6 +45,9 @@ namespace ImageProcessing.Web
 
         public async Task<IActionResult> OnPostUploadAsync()
         {
+
+            int SerialNumber = 0;
+
             if (!ModelState.IsValid)
             {
                 Result = "Please correct the form.";
@@ -46,72 +55,53 @@ namespace ImageProcessing.Web
                 return Page();
             }
 
+            List<ImageUploadStatus> UploadedImages = new List<ImageUploadStatus>();
+
             foreach (var formFile in FileUpload.FormFiles)
             {
-                var formFileContent =
-                    await FileHelpers
-                        .ProcessFormFile<BufferedMultipleFileUploadPhysical>(
-                            formFile, ModelState, _permittedExtensions,
-                            _fileSizeLimit);
 
-                if (!ModelState.IsValid)
+                HttpClient client = new HttpClient();
+                byte[] data;
+                using (var br = new BinaryReader(formFile.OpenReadStream()))
                 {
-                    Result = "Please correct the form.";
-
-                    return Page();
+                    data = br.ReadBytes((int)formFile.OpenReadStream().Length);
                 }
 
-                // For the file name of the uploaded file stored
-                // server-side, use Path.GetRandomFileName to generate a safe
-                // random file name.
-                //var trustedFileNameForFileStorage = Path.GetRandomFileName();
-                var trustedFileNameForFileStorage = $"{Guid.NewGuid()}_{Path.GetFileName(formFile.FileName)}";
-                var folderPath = Path.Combine(_targetFilePath,FileUpload.Stadium,FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm"));
-                var filePath = Path.Combine(folderPath, trustedFileNameForFileStorage);
-                // **WARNING!**
-                // In the following example, the file is saved without
-                // scanning the file's contents. In most production
-                // scenarios, an anti-virus/anti-malware scanner API
-                // is used on the file before making the file available
-                // for download or for use by other systems. 
-                // For more information, see the topic that accompanies 
-                // this sample.
+                ByteArrayContent bytes = new ByteArrayContent(data);
 
-                if (!Directory.Exists(folderPath))
+                MultipartFormDataContent multiContent = new MultipartFormDataContent();
+
+                multiContent.Add(bytes, "file", formFile.FileName);
+
+                multiContent.Add(new StringContent(_targetFilePath), "TargetPath");
+
+                multiContent.Add(new StringContent(FileUpload.Stadium), "Stadium");
+
+                multiContent.Add(new StringContent(FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm")), "DateTime");
+
+                HttpResponseMessage httpResponse = await client.PostAsync(_uploadFileURL, multiContent);
+
+                string responseContent = await httpResponse.Content.ReadAsStringAsync();
+
+                if (httpResponse.IsSuccessStatusCode)
                 {
-                    Directory.CreateDirectory(folderPath);
+                    SerialNumber++;
+                    UploadedImages.
+                        Add(new ImageUploadStatus { SerialNumber = SerialNumber, ImageName = formFile.FileName, Status = "Success" });
+
+                }
+                else
+                {
+                    // Log exception
+                    throw new Exception(responseContent);
                 }
 
-                using (var fileStream = System.IO.File.Create(filePath))
-                {
-                    await fileStream.WriteAsync(formFileContent);
-
-                    // To work directly with the FormFiles, use the following
-                    // instead:
-                    //await formFile.CopyToAsync(fileStream);
-                }
             }
-
+            ViewData["UploadedCount"] = SerialNumber;
+            ViewData["ImageStatus"] = UploadedImages;
             Result = "Uploaded Successfully";
-            //return RedirectToPage();
-            return RedirectToPage("./Search");
+            return Page();
         }
 
-    }
-
-    public class BufferedMultipleFileUploadPhysical
-    {
-        [Required]
-        [Display(Name = "Images")]
-        public List<IFormFile> FormFiles { get; set; }
-
-        [Required]
-        [Display(Name = "Stadium")]
-        [StringLength(100, MinimumLength = 0)]
-        public string Stadium { get; set; }
-
-        [Display(Name = "Date")]
-        [DataType(DataType.Date)]
-        public DateTime DateTime { get; set; }
     }
 }
