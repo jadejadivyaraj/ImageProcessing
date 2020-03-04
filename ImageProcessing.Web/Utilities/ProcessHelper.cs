@@ -10,7 +10,30 @@ namespace ImageProcessing.Web.Utilities
 {
     public class ProcessHelper
     {
-        public static void SearchFile(IConfiguration config, string photographerFolderPath, string personSearchfolder, string personName)
+        public static void UploadFolder(IConfiguration config, string photographerFolderPath)
+        {
+            var start = new ProcessStartInfo();
+            start.FileName = config.GetValue<string>("PythonExePath");
+            start.Arguments = string.Format("{0} {1} {2} {3} {4}"
+                , config.GetValue<string>("PythonScriptPath")
+                , config.GetValue<string>("ReferenceImagePath")
+                , photographerFolderPath
+                , "PersonName"
+                , config.GetValue<string>("DefaultResultCount"));
+            start.UseShellExecute = false;
+            start.WorkingDirectory = config.GetValue<string>("WorkingDir");
+            start.RedirectStandardOutput = true;
+            using (Process process = Process.Start(start))
+            {
+                using (StreamReader reader = process.StandardOutput)
+                {
+                    string result = reader.ReadToEnd();
+                    Console.Write(result);
+                }
+            }
+        }
+
+        public static void SearchFile(IConfiguration config, string photographerFolderPath, string personSearchfolder, string personName, int resultCount)
         {
             var start = new ProcessStartInfo();
             start.FileName = config.GetValue<string>("PythonExePath");
@@ -19,7 +42,7 @@ namespace ImageProcessing.Web.Utilities
                 , personSearchfolder
                 , photographerFolderPath
                 , personName
-                , 10);
+                , resultCount);
             start.UseShellExecute = false;
             start.WorkingDirectory = config.GetValue<string>("WorkingDir");
             start.RedirectStandardOutput = true;

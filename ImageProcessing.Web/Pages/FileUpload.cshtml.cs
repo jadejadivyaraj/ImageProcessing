@@ -13,6 +13,7 @@ namespace ImageProcessing.Web
 {
     public class FileUploadModel : PageModel
     {
+        private readonly IConfiguration _config;
 
         private readonly long _fileSizeLimit;
         private readonly string[] _permittedExtensions;
@@ -20,6 +21,7 @@ namespace ImageProcessing.Web
 
         public FileUploadModel(IConfiguration config)
         {
+            _config = config;
             _fileSizeLimit = config.GetValue<long>("FileSizeLimit");
 
             _targetFilePath = config.GetValue<string>("StoredFilesPath");
@@ -46,6 +48,7 @@ namespace ImageProcessing.Web
                 return Page();
             }
 
+            var folderPath = Path.Combine(_targetFilePath, FileUpload.Stadium, FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm"));
             foreach (var formFile in FileUpload.FormFiles)
             {
                 var formFileContent =
@@ -66,7 +69,7 @@ namespace ImageProcessing.Web
                 // random file name.
                 //var trustedFileNameForFileStorage = Path.GetRandomFileName();
                 var trustedFileNameForFileStorage = $"{Guid.NewGuid()}_{Path.GetFileName(formFile.FileName)}";
-                var folderPath = Path.Combine(_targetFilePath,FileUpload.Stadium,FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm"));
+              
                 var filePath = Path.Combine(folderPath, trustedFileNameForFileStorage);
                 // **WARNING!**
                 // In the following example, the file is saved without
@@ -91,6 +94,12 @@ namespace ImageProcessing.Web
                     //await formFile.CopyToAsync(fileStream);
                 }
             }
+
+            ProcessHelper.UploadFolder(_config, folderPath);
+
+            //wait till algo runs
+            ProcessHelper.WaitUntillAlgoComplete(_config);
+
 
             Result = "Uploaded Successfully";
             //return RedirectToPage();
