@@ -4,11 +4,13 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ImageProcessing.Web
@@ -71,14 +73,18 @@ namespace ImageProcessing.Web
 
                 MultipartFormDataContent multiContent = new MultipartFormDataContent();
 
-                multiContent.Add(bytes, "file", formFile.FileName);
+                multiContent.Add(bytes,"files",formFile.FileName);
 
                 multiContent.Add(new StringContent(_targetFilePath), "TargetPath");
 
                 multiContent.Add(new StringContent(FileUpload.Stadium), "Stadium");
 
-                multiContent.Add(new StringContent(FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm")), "DateTime");
+                multiContent.Add(new StringContent(JsonConvert.SerializeObject(_permittedExtensions)), "PermittedExtensions");
 
+                multiContent.Add(new StringContent(FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm")), "DateTime");
+                
+                multiContent.Add(new StringContent(_fileSizeLimit.ToString()), "FileSizeLimit");
+                
                 HttpResponseMessage httpResponse = await client.PostAsync(_uploadFileURL, multiContent);
 
                 string responseContent = await httpResponse.Content.ReadAsStringAsync();
@@ -95,6 +101,8 @@ namespace ImageProcessing.Web
                     // Log exception
                     throw new Exception(responseContent);
                 }
+
+                Thread.Sleep(1000);
 
             }
             ViewData["UploadedCount"] = SerialNumber;

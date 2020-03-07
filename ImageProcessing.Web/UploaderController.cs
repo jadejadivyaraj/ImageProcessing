@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
+using Newtonsoft.Json;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -35,27 +36,29 @@ namespace ImageProcessing.Web
         [DisableRequestSizeLimit]
         public async Task<IActionResult> Index(FileUploadPostData fileUploadPostData)
         {
+            //new string[] { ".gif", ".png", ".jpeg",".jpg", ".zip" }
 
-
-            var formFileContent =
-              await FileHelpers
-                  .ProcessFormFile<BufferedMultipleFileUploadPhysical>(
-                      fileUploadPostData.File, ModelState, new string[] { ".gif", ".png", ".jpeg",".zip" },
-                      fileUploadPostData.FileSizeLimit);
-            var trustedFileNameForFileStorage = $"{Guid.NewGuid()}_{Path.GetFileName(fileUploadPostData.File.FileName)}";
-            var folderPath = Path.Combine(fileUploadPostData.TargetPath, fileUploadPostData.Stadium, fileUploadPostData.DateTime);
-            var filePath = Path.Combine(folderPath, trustedFileNameForFileStorage);
-
-
-            if (!Directory.Exists(folderPath))
+            if (Request.HasFormContentType)
             {
-                Directory.CreateDirectory(folderPath);
-            }
+                var form = Request.Form;
+                var formFileContent = await FileHelpers.ProcessFormFile<BufferedMultipleFileUploadPhysical>(
+                     form.Files[0], ModelState, JsonConvert.DeserializeObject<string[]>(fileUploadPostData.PermittedExtensions),
+                     long.Parse(fileUploadPostData.FileSizeLimit));
+                var trustedFileNameForFileStorage = $"{Guid.NewGuid()}_{Path.GetFileName(form.Files[0].FileName)}";
+                var folderPath = Path.Combine(fileUploadPostData.TargetPath, fileUploadPostData.Stadium, fileUploadPostData.DateTime);
+                var filePath = Path.Combine(folderPath, trustedFileNameForFileStorage);
 
-            using (var fileStream = System.IO.File.Create(filePath))
-            {
-                await fileStream.WriteAsync(formFileContent);
 
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                using (var fileStream = System.IO.File.Create(filePath))
+                {
+                    await fileStream.WriteAsync(formFileContent);
+
+                }
             }
 
             return this.Content("success");

@@ -4,7 +4,8 @@
     ViewData["Title"] = "Search";
 }
 
-<h1>Search</h1>
+<h5>Search</h5>
+<hr />
 <div class="alert-warning">
     @Model.Result
 </div>
@@ -14,15 +15,17 @@
             <label asp-for="FileUpload.Stadium"></label>
         </dt>
         <dd>
-            <input asp-for="FileUpload.Stadium" type="text" />
-            <span asp-validation-for="FileUpload.Stadium"></span>
+            
+                <input asp-for="FileUpload.Stadium" type="text" style="border-radius: 15px; padding:2px;" />
+                <span asp-validation-for="FileUpload.Stadium"></span>
+                
         </dd>
         
         <dt>
             <label asp-for="FileUpload.DateTime"></label>
         </dt>
         <dd>
-            <input asp-for="FileUpload.DateTime" />
+            <input asp-for="FileUpload.DateTime" style="border-radius: 15px; padding:2px;"/>
             <span asp-validation-for="FileUpload.DateTime"></span>
         </dd>
       
@@ -30,13 +33,15 @@
             <label asp-for="FileUpload.FormFile"></label>
         </dt>
         <dd>
-            <input asp-for="FileUpload.FormFile" type="file" />
-            <span asp-validation-for="FileUpload.FormFile"></span>
+            <div class="btn btn btn-light" style="border-radius: 15px; padding:5px;">
+                <input asp-for="FileUpload.FormFile" type="file" accept=".png,.jpg,.jpeg,.gif,.bmp,.heic" />
+                <span asp-validation-for="FileUpload.FormFile"></span>
+                </div>
         </dd>
     </dl>
-    <input asp-page-handler="Upload" class="btn btn-primary" type="submit" value="Upload" />
+    <input asp-page-handler="Upload" class="btn btn-dark" style="border-radius:10px;" type="submit" value="Upload" />
 </form>
-
+<hr/>
 <div class="col-sm-8">
     @await Component.InvokeAsync("SearchResult",new {folder=Model.ResultPath})
 </div>

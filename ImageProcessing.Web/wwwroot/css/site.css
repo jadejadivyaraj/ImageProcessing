@@ -1,5 +1,24 @@
 ﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 for details on configuring this project to bundle and minify static web assets. */
+.headerbg {
+    /* The image used */
+    background-image: url("header.jpg");
+    /* Full height */  
+    /* Center and scale the image nicely */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.bg {
+    /* The image used */
+    background-image: url("bg.jpg");
+    /* Full height */
+    height: 100%;
+    /* Center and scale the image nicely */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
 
 a.navbar-brand {
   white-space: normal;
@@ -9,9 +28,12 @@ a.navbar-brand {
 
 /* Provide sufficient contrast against white background */
 a {
-  color: #0366d6;
+  color: whitesmoke;
 }
 
+    a:hover {
+        color:cornsilk;
+    }
 .btn-primary {
   color: #fff;
   background-color: #1b6ec2;
@@ -19,7 +41,7 @@ a {
 }
 
 .nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-  color: #fff;
+  color: whitesmoke;
   background-color: #1b6ec2;
   border-color: #1861ac;
 }

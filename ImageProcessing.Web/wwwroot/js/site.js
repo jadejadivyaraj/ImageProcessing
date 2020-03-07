@@ -1,5 +1,6 @@
 ﻿ $(document).ready(function () {
-            $("#FileUpload1").change(function () {
+     $("#FileUpload1").change(function () {
+         console.log($(this).get(0).files[0].size);
                 // Get uploaded file extension
                 var extension = $(this).val().split('.').pop().toLowerCase();
                 // Create array with the files extensions that we wish to upload

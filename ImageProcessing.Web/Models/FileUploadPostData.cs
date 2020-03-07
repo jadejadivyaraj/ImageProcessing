@@ -11,11 +11,14 @@ namespace ImageProcessing.Web.Models
 
         public IFormFile File { get; set; }
 
+        public string PermittedExtensions { get; set; }
+
+
         public string TargetPath { get; set; }
         public string Stadium { get; set; }
 
         //public string[] PermittedExtensions { get; set; }
-        public long FileSizeLimit { get; set; }
+        public string FileSizeLimit { get; set; }
 
         public string DateTime { get; set; }
 
