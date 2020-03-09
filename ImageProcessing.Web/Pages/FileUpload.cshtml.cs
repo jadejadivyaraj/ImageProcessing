@@ -107,7 +107,7 @@ namespace ImageProcessing.Web
             }
             ViewData["UploadedCount"] = SerialNumber;
             ViewData["ImageStatus"] = UploadedImages;
-            ProcessHelper.UploadFolder(_config, folderPath);
+            ProcessHelper.UploadFolder(_config, _targetFilePath+ FileUpload.Stadium+ FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm"));
             //wait till algo runs
             ProcessHelper.WaitUntillAlgoComplete(_config);
             Result = "Uploaded Successfully";
