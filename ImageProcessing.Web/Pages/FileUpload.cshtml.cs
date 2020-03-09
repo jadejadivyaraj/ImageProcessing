@@ -1,4 +1,4 @@
-﻿using ImageProcessing.Web.Models;
+using ImageProcessing.Web.Models;
 using ImageProcessing.Web.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +18,7 @@ namespace ImageProcessing.Web
     [DisableRequestSizeLimit]
     public class FileUploadModel : PageModel
     {
+        private readonly IConfiguration _config;
 
         private readonly long _fileSizeLimit;
         private readonly string[] _permittedExtensions;
@@ -26,6 +27,7 @@ namespace ImageProcessing.Web
 
         public FileUploadModel(IConfiguration config)
         {
+            _config = config;
             _fileSizeLimit = config.GetValue<long>("FileSizeLimit");
 
             _targetFilePath = config.GetValue<string>("StoredFilesPath");
@@ -58,8 +60,8 @@ namespace ImageProcessing.Web
             }
 
             List<ImageUploadStatus> UploadedImages = new List<ImageUploadStatus>();
-
-            foreach (var formFile in FileUpload.FormFiles)
+           
+           foreach (var formFile in FileUpload.FormFiles)
             {
 
                 HttpClient client = new HttpClient();
@@ -94,7 +96,6 @@ namespace ImageProcessing.Web
                     SerialNumber++;
                     UploadedImages.
                         Add(new ImageUploadStatus { SerialNumber = SerialNumber, ImageName = formFile.FileName, Status = "Success" });
-
                 }
                 else
                 {
@@ -103,10 +104,12 @@ namespace ImageProcessing.Web
                 }
 
                 Thread.Sleep(1000);
-
             }
             ViewData["UploadedCount"] = SerialNumber;
             ViewData["ImageStatus"] = UploadedImages;
+            ProcessHelper.UploadFolder(_config, folderPath);
+            //wait till algo runs
+            ProcessHelper.WaitUntillAlgoComplete(_config);
             Result = "Uploaded Successfully";
             return Page();
         }

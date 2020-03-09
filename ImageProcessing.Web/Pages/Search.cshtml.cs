@@ -97,7 +97,7 @@ namespace ImageProcessing.Web
             ProcessHelper.SearchFile(_config,
                 Path.Combine(Path.GetDirectoryName(folderPath), FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm")),
                 Path.GetDirectoryName(filePath)
-                ,personName);
+                ,personName, FileUpload.ResultCount);
 
             //wait till algo runs
             ProcessHelper.WaitUntillAlgoComplete(_config);
@@ -121,6 +121,11 @@ namespace ImageProcessing.Web
         [Display(Name = "Stadium")]
         [StringLength(100, MinimumLength = 0)]
         public string Stadium { get; set; }
+
+        [Required]
+        [Display(Name = "Result Count")]
+        [Range(typeof(int),"1","1000")]
+        public int ResultCount { get; set; }
 
         [Display(Name = "Date")]
         [DataType(DataType.Date)]
