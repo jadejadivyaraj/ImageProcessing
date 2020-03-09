@@ -35,6 +35,9 @@ namespace ImageProcessing.Web.Utilities
 
         public static void SearchFile(IConfiguration config, string photographerFolderPath, string personSearchfolder, string personName, int resultCount)
         {
+
+            try
+            {
             var start = new ProcessStartInfo();
             start.FileName = config.GetValue<string>("PythonExePath");
             start.Arguments = string.Format("{0} {1} {2} {3} {4}"
@@ -47,13 +50,20 @@ namespace ImageProcessing.Web.Utilities
             start.WorkingDirectory = config.GetValue<string>("WorkingDir");
             start.RedirectStandardOutput = true;
             using (Process process = Process.Start(start))
-            {
-                using (StreamReader reader = process.StandardOutput)
                 {
-                    string result = reader.ReadToEnd();
-                    Console.Write(result);
+                    using (StreamReader reader = process.StandardOutput)
+                    {
+                        string result = reader.ReadToEnd();
+                        Console.Write(result);
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            
         }
 
         public static void WaitUntillAlgoComplete(IConfiguration config)

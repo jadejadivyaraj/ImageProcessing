@@ -68,6 +68,10 @@ namespace ImageProcessing.Web
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
+                endpoints.MapControllerRoute(
+               name: "uploadapi",
+               pattern: "{controller=Uploader}/{action=Index}/{id?}");
+                
             });
         }
     }
