@@ -103,13 +103,10 @@ namespace ImageProcessing.Web
                     throw new Exception(responseContent);
                 }
 
-                Thread.Sleep(1000);
+                Thread.Sleep(500);
             }
             ViewData["UploadedCount"] = SerialNumber;
             ViewData["ImageStatus"] = UploadedImages;
-            ProcessHelper.UploadFolder(_config, _targetFilePath+ FileUpload.Stadium+ FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm"));
-            //wait till algo runs
-            ProcessHelper.WaitUntillAlgoComplete(_config);
             Result = "Uploaded Successfully";
             return Page();
         }
