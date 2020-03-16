@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Drawing;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Zip;
 using ImageProcessing.Web.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,14 +21,17 @@ namespace ImageProcessing.Web
         private readonly string[] _permittedExtensions;
         private readonly string _targetFilePath;
         private readonly IConfiguration _config;
+        private readonly string _strSessionID;
 
         public SearchModel(IConfiguration config)
         {
+
             _fileSizeLimit = config.GetValue<long>("FileSizeLimit");
 
             _targetFilePath = config.GetValue<string>("StoredFilesPath");
 
             _permittedExtensions = config.GetValue<string>("PermittedExtensions")?.Split(',');
+           
             _config = config;
         }
 
@@ -84,6 +90,28 @@ namespace ImageProcessing.Web
             {
                 Directory.CreateDirectory(folderPath);
             }
+            else
+            {
+
+                try
+                {
+                    //Delete the Person Folder
+                    Directory.Delete(Path.Combine(_targetFilePath, FileUpload.Stadium, personName), true);
+
+                    //Delete the P File
+                    foreach (string file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(folderPath), FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm")), "*.p"))
+                    {
+                        System.IO.File.Delete(file);
+                    }
+                    //Create again Person Folder
+                    Directory.CreateDirectory(Path.Combine(_targetFilePath, FileUpload.Stadium, personName));
+                }
+                catch (Exception ex)
+                {
+                    throw ex;
+                }
+
+            }
 
             using (var fileStream = System.IO.File.Create(filePath))
             {
@@ -97,19 +125,165 @@ namespace ImageProcessing.Web
             ProcessHelper.SearchFile(_config,
                 Path.Combine(Path.GetDirectoryName(folderPath), FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm")),
                 Path.GetDirectoryName(filePath)
-                ,personName, FileUpload.ResultCount);
+                , personName, FileUpload.ResultCount);
 
-            //wait till algo runs
+            ////wait till algo runs
             ProcessHelper.WaitUntillAlgoComplete(_config);
 
-            ResultPath = Path.Combine(Path.GetDirectoryName(filePath), personName);
+            //create the thumbnail folder and process all images 
+            //Ref Path : C:\inetpub\wwwroot\wwwroot\images\1014\PersonName\PersonName
+            string resultImagesPath = Path.Combine(folderPath, personName);
+            int SerialNumber = 0;
+            if (Directory.Exists(resultImagesPath))
+            {
+                if (Directory.GetFiles(resultImagesPath, "*", SearchOption.AllDirectories).Length > 0)
+                {
+                    
+                    foreach (string filename in Directory.GetFiles(resultImagesPath))
+                    {
+                        Bitmap sourceImage = new Bitmap(filename);
+                        using (Bitmap objBitmap = new Bitmap(200, 200))
+                        {
+                            //Check for exif data to determin orientation of camera when photo was taken and rotate to what's expected
+                            if (sourceImage.PropertyIdList.Contains(0x112)) //0x112 = Orientation
+                            {
+                                var prop = sourceImage.GetPropertyItem(0x112);
+                                if (prop.Type == 3 && prop.Len == 2)
+                                {
+                                    UInt16 orientationExif = BitConverter.ToUInt16(sourceImage.GetPropertyItem(0x112).Value, 0);
+                                    if (orientationExif == 8)
+                                    {
+                                        sourceImage.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                                    }
+                                    else if (orientationExif == 3)
+                                    {
+                                        sourceImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
+                                    }
+                                    else if (orientationExif == 6)
+                                    {
+                                        sourceImage.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                                    }
+                                }
+                            }
+                            objBitmap.SetResolution(sourceImage.HorizontalResolution, sourceImage.VerticalResolution);
+                            using (Graphics objGraphics = Graphics.FromImage(objBitmap))
+                            {
+                                // Set the graphic format for better result cropping   
+                                objGraphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                                objGraphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                                objGraphics.DrawImage(sourceImage, 0, 0, 200, 200);
+
+                                // Save the file path, note we use png format to support png file
+                                //create thumbnail folders inside Person Folder
+
+                                if (!Directory.Exists(Path.Combine(folderPath, "thumbnails")))
+                                {
+                                    Directory.CreateDirectory(Path.Combine(folderPath, "thumbnails"));
+                                }
+
+                                objBitmap.Save(Path.Combine(folderPath, "thumbnails", Path.GetFileName(filename)));
+                                SerialNumber++;
+                            }
+                        }
+
+
+                    }
+
+                }
+            }
+
+            ResultPath = Path.Combine(folderPath, "thumbnails");
+            if (SerialNumber > 0)
+            {
+                ViewData["showButtonDownloaddAll"] = "yes";
+            }
+            else
+            {
+                ViewData["showButtonDownloaddAll"] = "no";
+            }
+            ViewData["StadiumName"] = FileUpload.Stadium;
+            ViewData["DateTimePosted"] = FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm");
             return await OnPostUploadedAsync();
+        }
+        public bool ThumbnailCallback()
+        {
+            return false;
         }
 
         public async Task<IActionResult> OnPostUploadedAsync()
         {
             return Page();
         }
+
+        public async Task<FileResult> OnPostDownloadAllZip(string stadium, string datetime)
+        {
+
+            try
+            {
+                
+                if (stadium != "" && datetime != "")
+                {
+                    string zipFilePath = Path.Combine(_targetFilePath,stadium, "PersonName");
+                    // Name of the ZIP File
+                    var fileName = string.Format("{0}_ResultSet.zip", stadium + datetime.ToString() + "_1");
+
+                    //Temp Path
+                    var tempOutPutPath = Path.Combine(zipFilePath, fileName);
+
+                    if (System.IO.File.Exists(tempOutPutPath))
+                        System.IO.File.Delete(tempOutPutPath);
+
+                    using (ZipOutputStream s = new ZipOutputStream(System.IO.File.Create(tempOutPutPath)))
+                    {
+                        s.SetLevel(9); // 0-9, 9 being the highest compression  
+
+                        byte[] buffer = new byte[4096];
+
+
+                        //read the images from the below path
+                        var folderPath = Path.Combine(_targetFilePath, stadium, "PersonName", "PersonName");
+                        foreach (string filename in Directory.GetFiles(folderPath,"*.*",SearchOption.TopDirectoryOnly))
+                        {
+                            ZipEntry entry = new ZipEntry(Path.GetFileName(filename));
+                            entry.DateTime = DateTime.Now;
+                            entry.IsUnicodeText = true;
+                            s.PutNextEntry(entry);
+
+                            using (FileStream fs = System.IO.File.OpenRead(filename))
+                            {
+                                int sourceBytes;
+                                do
+                                {
+                                    sourceBytes = fs.Read(buffer, 0, buffer.Length);
+                                    s.Write(buffer, 0, sourceBytes);
+                                } while (sourceBytes > 0);
+                            }
+                        }
+
+                        s.Finish();
+                        s.Flush();
+                        s.Close();
+                    }
+
+                    byte[] finalResult = System.IO.File.ReadAllBytes(tempOutPutPath);
+                    if (System.IO.File.Exists(tempOutPutPath))
+                        System.IO.File.Delete(tempOutPutPath);
+
+                    if (finalResult == null || !finalResult.Any())
+                        throw new Exception(String.Format("No Files found with Image"));
+
+                    return File(finalResult, "application/zip", fileName);
+                }
+               
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return null;
+        }
+
     }
     public class BufferedSingleFileUploadDb
     {
@@ -124,7 +298,7 @@ namespace ImageProcessing.Web
 
         [Required]
         [Display(Name = "Result Count")]
-        [Range(typeof(int),"1","1000")]
+        [Range(typeof(int), "1", "1000")]
         public int ResultCount { get; set; }
 
         [Display(Name = "Date")]

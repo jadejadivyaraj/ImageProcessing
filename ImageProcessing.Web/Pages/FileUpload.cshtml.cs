@@ -103,7 +103,7 @@ namespace ImageProcessing.Web
                     throw new Exception(responseContent);
                 }
 
-                Thread.Sleep(500);
+                //Thread.Sleep(500);
             }
             ViewData["UploadedCount"] = SerialNumber;
             ViewData["ImageStatus"] = UploadedImages;
