@@ -6,48 +6,58 @@
     <title>@ViewData["Title"] - TeamFotog</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" />
+    <link href="~/css/uploadfile.css" rel="stylesheet">
+    
 </head>
-<body style="background-color:#ADBFD7;">
+@*<body style="background-color:#ADBFD7;">*@
+<body>
     <header class="headerbg">
-        @*<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">*@
-            <nav class="navbar navbar-expand-sm navbar-toggleable-sm  box-shadow mb-3">
-                <div class="container">
-                    <a class="navbar-brand" asp-area="" asp-page="/Index" style="font-size: x-large;">Hound Dog by TeamFotog</a>
-                    <button class="navbar-toggler navbar-dark" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                            aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-                        <ul class="navbar-nav flex-grow-1">
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="" asp-page="/Index">Home</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-page="/FileUpload">Photographer</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-page="/Search">Athlete</a>
-                            </li>
-                        </ul>
-                    </div>
+        @*@<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">*@
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm  box-shadow mb-3">
+            <div class="container">
+                <a class="navbar-brand" asp-area="" asp-page="/Index" style="font-size: xx-large;font-weight: bold;">Houndog by TeamFotog</a>
+                <button class="navbar-toggler navbar-dark" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Index">Home &nbsp; &nbsp; |</a>
+                        </li>
+                        @*<li class="nav-item"><span class="nav-link" >|</span></li>*@
+                        <li class="nav-item">
+                            <a class="nav-link" asp-page="/FileUpload">Photographer &nbsp; &nbsp; |</a>
+                        </li>
+                        @*<li class="nav-item"><span class="nav-link">|</span></li>*@
+                        <li class="nav-item">
+                            <a class="nav-link" asp-page="/Search">Athlete&nbsp; &nbsp; |</a>
+                        </li>
+                    </ul>
                 </div>
-            </nav>
-</header>
-    <div class="container">
+            </div>
+        </nav>
+    </header>
+    <div class="container" style="margin-top:3%;">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted box-shadow mb-3" style="background-color:#2D415A;">
+    @*<footer class="border-top footer text-muted box-shadow mb-3" style="background-color:#2D415A;">*@
+    <footer class="footer text-muted box-shadow mb-3">
         <div class="container" style="color:whitesmoke;">
-            &copy; 2020 - Hound Dog by TeamFotog
+            &copy; copy right - sanresearch69@gmail.com
         </div>
     </footer>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/jquery.min.js"></script>
+    <script src="~/js/popper.min.js.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script src="~/js/jquery.uploadfile.min.js"></script>
+    <script src="~/js/jquery.ui.widget.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
 
     @RenderSection("Scripts", required: false)
 </body>

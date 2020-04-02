@@ -22,6 +22,7 @@ namespace ImageProcessing.Web
         private readonly string _targetFilePath;
         private readonly IConfiguration _config;
         private readonly string _strSessionID;
+        private readonly string _logPath;
 
         public SearchModel(IConfiguration config)
         {
@@ -33,6 +34,10 @@ namespace ImageProcessing.Web
             _permittedExtensions = config.GetValue<string>("PermittedExtensions")?.Split(',');
            
             _config = config;
+
+            _logPath = "myapplog.txt";
+
+
         }
 
         [BindProperty]
@@ -99,7 +104,7 @@ namespace ImageProcessing.Web
                     Directory.Delete(Path.Combine(_targetFilePath, FileUpload.Stadium, personName), true);
 
                     //Delete the P File
-                    foreach (string file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(folderPath), FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm")), "*.p"))
+                    foreach (string file in Directory.GetFiles(Path.Combine(Path.GetDirectoryName(folderPath), FileUpload.DateTime.ToString("yyyy-MM-dd")), "*.p"))
                     {
                         System.IO.File.Delete(file);
                     }
@@ -108,7 +113,7 @@ namespace ImageProcessing.Web
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
+                    System.IO.File.AppendAllText(_logPath, $"{DateTime.Now.ToString("o")} [ERR] {ex.Message}" + Environment.NewLine);
                 }
 
             }
@@ -122,88 +127,97 @@ namespace ImageProcessing.Web
                 //await formFile.CopyToAsync(fileStream);
             }
 
-            ProcessHelper.SearchFile(_config,
-                Path.Combine(Path.GetDirectoryName(folderPath), FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm")),
+            try
+            {
+                ProcessHelper.SearchFile(_config,
+                Path.Combine(Path.GetDirectoryName(folderPath), FileUpload.DateTime.ToString("yyyy-MM-dd")),
                 Path.GetDirectoryName(filePath)
                 , personName, FileUpload.ResultCount);
 
-            ////wait till algo runs
-            ProcessHelper.WaitUntillAlgoComplete(_config);
+                ////wait till algo runs
+                ProcessHelper.WaitUntillAlgoComplete(_config);
 
-            //create the thumbnail folder and process all images 
-            //Ref Path : C:\inetpub\wwwroot\wwwroot\images\1014\PersonName\PersonName
-            string resultImagesPath = Path.Combine(folderPath, personName);
-            int SerialNumber = 0;
-            if (Directory.Exists(resultImagesPath))
-            {
-                if (Directory.GetFiles(resultImagesPath, "*", SearchOption.AllDirectories).Length > 0)
+                //create the thumbnail folder and process all images 
+                //Ref Path : C:\inetpub\wwwroot\wwwroot\images\1014\PersonName\PersonName
+                string resultImagesPath = Path.Combine(folderPath, personName);
+                int SerialNumber = 0;
+                if (Directory.Exists(resultImagesPath))
                 {
-                    
-                    foreach (string filename in Directory.GetFiles(resultImagesPath))
+                    if (Directory.GetFiles(resultImagesPath, "*", SearchOption.AllDirectories).Length > 0)
                     {
-                        Bitmap sourceImage = new Bitmap(filename);
-                        using (Bitmap objBitmap = new Bitmap(200, 200))
+
+                        foreach (string filename in Directory.GetFiles(resultImagesPath))
                         {
-                            //Check for exif data to determin orientation of camera when photo was taken and rotate to what's expected
-                            if (sourceImage.PropertyIdList.Contains(0x112)) //0x112 = Orientation
+                            Bitmap sourceImage = new Bitmap(filename);
+                            using (Bitmap objBitmap = new Bitmap(200, 200))
                             {
-                                var prop = sourceImage.GetPropertyItem(0x112);
-                                if (prop.Type == 3 && prop.Len == 2)
+                                //Check for exif data to determin orientation of camera when photo was taken and rotate to what's expected
+                                if (sourceImage.PropertyIdList.Contains(0x112)) //0x112 = Orientation
                                 {
-                                    UInt16 orientationExif = BitConverter.ToUInt16(sourceImage.GetPropertyItem(0x112).Value, 0);
-                                    if (orientationExif == 8)
+                                    var prop = sourceImage.GetPropertyItem(0x112);
+                                    if (prop.Type == 3 && prop.Len == 2)
                                     {
-                                        sourceImage.RotateFlip(RotateFlipType.Rotate270FlipNone);
-                                    }
-                                    else if (orientationExif == 3)
-                                    {
-                                        sourceImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
-                                    }
-                                    else if (orientationExif == 6)
-                                    {
-                                        sourceImage.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                                        UInt16 orientationExif = BitConverter.ToUInt16(sourceImage.GetPropertyItem(0x112).Value, 0);
+                                        if (orientationExif == 8)
+                                        {
+                                            sourceImage.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                                        }
+                                        else if (orientationExif == 3)
+                                        {
+                                            sourceImage.RotateFlip(RotateFlipType.Rotate180FlipNone);
+                                        }
+                                        else if (orientationExif == 6)
+                                        {
+                                            sourceImage.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                                        }
                                     }
                                 }
-                            }
-                            objBitmap.SetResolution(sourceImage.HorizontalResolution, sourceImage.VerticalResolution);
-                            using (Graphics objGraphics = Graphics.FromImage(objBitmap))
-                            {
-                                // Set the graphic format for better result cropping   
-                                objGraphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
-                                objGraphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
-                                objGraphics.DrawImage(sourceImage, 0, 0, 200, 200);
-
-                                // Save the file path, note we use png format to support png file
-                                //create thumbnail folders inside Person Folder
-
-                                if (!Directory.Exists(Path.Combine(folderPath, "thumbnails")))
+                                objBitmap.SetResolution(sourceImage.HorizontalResolution, sourceImage.VerticalResolution);
+                                using (Graphics objGraphics = Graphics.FromImage(objBitmap))
                                 {
-                                    Directory.CreateDirectory(Path.Combine(folderPath, "thumbnails"));
-                                }
+                                    // Set the graphic format for better result cropping   
+                                    objGraphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-                                objBitmap.Save(Path.Combine(folderPath, "thumbnails", Path.GetFileName(filename)));
-                                SerialNumber++;
+                                    objGraphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
+                                    objGraphics.DrawImage(sourceImage, 0, 0, 200, 200);
+
+                                    // Save the file path, note we use png format to support png file
+                                    //create thumbnail folders inside Person Folder
+
+                                    if (!Directory.Exists(Path.Combine(folderPath, "thumbnails")))
+                                    {
+                                        Directory.CreateDirectory(Path.Combine(folderPath, "thumbnails"));
+                                    }
+
+                                    objBitmap.Save(Path.Combine(folderPath, "thumbnails", Path.GetFileName(filename)));
+                                    SerialNumber++;
+                                }
                             }
+
+
                         }
 
-
                     }
+                }
 
+                ResultPath = Path.Combine(folderPath, "thumbnails");
+                if (SerialNumber > 0)
+                {
+                    ViewData["showButtonDownloaddAll"] = "yes";
+                }
+                else
+                {
+                    ViewData["showButtonDownloaddAll"] = "no";
                 }
             }
-
-            ResultPath = Path.Combine(folderPath, "thumbnails");
-            if (SerialNumber > 0)
+            catch (Exception ex)
             {
-                ViewData["showButtonDownloaddAll"] = "yes";
+                System.IO.File.AppendAllText(_logPath, $"{DateTime.Now.ToString("o")} [ERR] {ex.Message}" + Environment.NewLine);
+                throw ex;
             }
-            else
-            {
-                ViewData["showButtonDownloaddAll"] = "no";
-            }
+            
             ViewData["StadiumName"] = FileUpload.Stadium;
-            ViewData["DateTimePosted"] = FileUpload.DateTime.ToString("yyyy-MM-dd-HH-mm");
+            ViewData["DateTimePosted"] = FileUpload.DateTime.ToString("yyyy-MM-dd");
             return await OnPostUploadedAsync();
         }
         public bool ThumbnailCallback()
@@ -301,6 +315,7 @@ namespace ImageProcessing.Web
         [Range(typeof(int), "1", "1000")]
         public int ResultCount { get; set; }
 
+        [HiddenInput]
         [Display(Name = "Date")]
         [DataType(DataType.Date)]
         public DateTime DateTime { get; set; }
