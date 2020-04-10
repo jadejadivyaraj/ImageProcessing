@@ -6,27 +6,36 @@
 
 <h5>Search</h5>
 <hr />
-<div class="alert-warning">
+<span id="spnDocMsg" class="error" style="display: none;"></span>
+<div style="background-color:#d9534f;width:20%">
     @Model.Result
 </div>
-<form enctype="multipart/form-data" method="post">
+<form autocomplete="off" enctype="multipart/form-data" method="post">
     <dl>
         <dt>
             <label asp-for="FileUpload.Stadium"></label>
         </dt>
         <dd>
-
-            <input asp-for="FileUpload.Stadium" type="text" style="border-radius: 15px; padding:2px;" />
-            <span asp-validation-for="FileUpload.Stadium"></span>
-
+            <div class="autocomplete">
+                <input id="myInput" asp-for="FileUpload.Stadium" type="text" style="border-radius: 15px; padding:2px;" placeholder="Stadium Name" />
+                <span class="inputError" asp-validation-for="FileUpload.Stadium"></span>
+            </div>
         </dd>
 
         <dt>
             <label asp-for="FileUpload.DateTime"></label>
         </dt>
         <dd>
-            <input id="input_datetime" asp-for="FileUpload.DateTime" style="border-radius: 15px; padding:2px;" />
-            <span asp-validation-for="FileUpload.DateTime"></span>
+            <div class="dropdown">
+                <button class="btn btn-default dropdown-toggle" type="button" id="menu1" data-toggle="dropdown">
+                    Event Date
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu" id="datetimedata" role="menu" aria-labelledby="menu1">
+                </ul>
+            </div>
+            <input type="hidden" id="input_datetime" asp-for="FileUpload.DateTime" style="border-radius: 15px; padding:2px;" />
+            @*<span class="inputError" asp-validation-for="FileUpload.DateTime"></span>*@
         </dd>
 
         <dt>
@@ -34,7 +43,7 @@
         </dt>
         <dd>
             <input asp-for="FileUpload.ResultCount" type="text" style="border-radius: 15px; padding:2px;" />
-            <span asp-validation-for="FileUpload.ResultCount"></span>
+            <span class="inputError" asp-validation-for="FileUpload.ResultCount"></span>
         </dd>
 
         <dt>
@@ -43,11 +52,11 @@
         <dd>
             <div class="btn btn btn-light" style="border-radius: 15px; padding:5px;">
                 <input asp-for="FileUpload.FormFile" type="file" accept=".png,.jpg,.jpeg,.gif,.bmp,.heic" />
-                <span asp-validation-for="FileUpload.FormFile"></span>
+                <span class="inputError" asp-validation-for="FileUpload.FormFile"></span>
             </div>
         </dd>
     </dl>
-    <input asp-page-handler="Upload" class="btn btn-dark" style="border-radius:10px;" type="submit" value="Upload" />
+    <input id="submitbutton_search" asp-page-handler="Upload" class="btn btn-dark" style="border-radius:10px;" type="submit" value="Upload" />
 </form>
 <hr />
 <div class="col-sm-8">

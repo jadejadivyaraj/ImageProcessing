@@ -1,6 +1,17 @@
 ﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 for details on configuring this project to bundle and minify static web assets. */
-.headerbg {
+body {
+    background: url("sony-camera-46132-1920x1080New-min.jpg") no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    color: whitesmoke;
+}
+dt {
+font-weight:100;
+}
+.headerbg1 {
     /* The image used */
     background-image: url("header.jpg");
     /* Full height */  
@@ -30,9 +41,8 @@ a.navbar-brand {
 a {
   color: whitesmoke;
 }
-
     a:hover {
-        color:cornsilk;
+        color: #d9534f;
     }
 .btn-primary {
   color: #fff;
@@ -45,12 +55,11 @@ a {
   background-color: #1b6ec2;
   border-color: #1861ac;
 }
-
-/* Sticky footer styles
+    /* Sticky footer styles
 -------------------------------------------------- */
-html {
-  font-size: 14px;
-}
+    html {
+        font-size: 14px;
+    }
 @media (min-width: 768px) {
   html {
     font-size: 16px;
@@ -99,4 +108,79 @@ body {
     color: #fff;
     text-align: center;
     white-space: nowrap;
+}
+/*the container must be positioned relative:*/
+.autocomplete {
+    position: relative;
+    display: inline-block;
+}
+.autocomplete-items {
+    border-radius:10px;
+    height:150px;
+    overflow-y:auto;
+    position: absolute;
+    /*border: 1px solid #d4d4d4;
+    border-bottom: none;
+    border-top: none;*/
+    z-index: 99;
+    /*position the autocomplete items to be the same width as the container:*/
+    top: 100%;
+    left: 0;
+    right: 0;
+}
+
+    .autocomplete-items div {
+        padding: 5px;
+        cursor: pointer;
+        background-color: #d9534f;
+        border-bottom: 1px solid white;
+        border-radius: 10px;
+    }
+
+        /*when hovering an item:*/
+        .autocomplete-items div:hover {
+            background-color: grey;
+        }
+
+/*when navigating through the items using the arrow keys:*/
+.autocomplete-active {
+    background-color: DodgerBlue !important;
+    color: #ffffff;
+    font-size: smaller;
+    padding:1px;
+}
+.dropdown-menu {
+    max-height: 150px;
+    overflow: scroll;
+    overflow-x: hidden;
+    margin-top: 0px;
+    width:200px;
+    border-radius:12px;
+    text-align:center;
+}
+
+.caret {
+    float: right;
+    margin-top: 5%;
+}
+
+#menu1 {
+    width: 200px;
+    text-align: center;
+    background: white;
+    border-radius: 30px;
+    height: 30px;
+    margin-top: 0px;
+    padding: 0px;
+}
+.dropdown ul li {
+    color: black;
+}
+    .dropdown ul li:hover {
+        color: white;
+        background: #d9534f;
+    }
+
+.inputError {
+    color: #d9534f;
 }
